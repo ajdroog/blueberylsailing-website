@@ -87,6 +87,7 @@ jobs:
             set sftp:connect-program '$SSH_CMD';
             open -u '$SFTP_USER','$PASS' sftp://$SFTP_HOST;
             pwd;
+            echo '--- hoogste niveau ---'; cls -1F / | head -40; echo '--- einde ---';
             cd / && echo 'root: ok' || echo 'root: fout';
             cd /subsites && echo '/subsites: bestaat' || echo '/subsites: bestaat niet';
             cd / ; cd subsites && echo 'subsites (relatief): bestaat' || echo 'subsites (relatief): bestaat niet';

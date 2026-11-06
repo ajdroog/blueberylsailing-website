@@ -70,32 +70,6 @@ jobs:
             printf '%s\n' "$SFTP_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
           fi
 
-      - name: Controleer of de doelmap bestaat
-        continue-on-error: true
-        run: |
-          PORT="${SFTP_PORT:-22}"
-          SSH_CMD="ssh -a -x -p $PORT -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
-          if [ -n "$SFTP_KEY" ]; then
-            SSH_CMD="$SSH_CMD -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PasswordAuthentication=no"
-            PASS=""
-          else
-            PASS="$SFTP_PASSWORD"
-          fi
-          # Alleen ja/nee-uitkomsten, geen mapinhoud (de logs van een publieke repo zijn openbaar)
-          lftp -e "
-            set cmd:fail-exit no;
-            set sftp:connect-program '$SSH_CMD';
-            open -u '$SFTP_USER','$PASS' sftp://$SFTP_HOST;
-            pwd;
-            echo '--- /site/subsites ---'; cls -1F /site/subsites | head -30; echo '--- einde ---';
-            cd / && echo 'root: ok' || echo 'root: fout';
-            cd /subsites && echo '/subsites: bestaat' || echo '/subsites: bestaat niet';
-            cd / ; cd subsites && echo 'subsites (relatief): bestaat' || echo 'subsites (relatief): bestaat niet';
-            cd / ; cd /www && echo '/www: bestaat' || echo '/www: bestaat niet';
-            cd / ; cd www && echo 'www (relatief): bestaat' || echo 'www (relatief): bestaat niet';
-            cd / ; cd '$DEV_REMOTE_DIR' && echo 'DEV_REMOTE_DIR: bestaat' || echo 'DEV_REMOTE_DIR: bestaat niet';
-            bye"
-
       - name: Upload naar dev.blueberylsailing.com
         run: |
           PORT="${SFTP_PORT:-22}"

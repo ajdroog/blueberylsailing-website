@@ -1,0 +1,98 @@
+name: Deploy dev-site naar TransIP
+
+# Bij elke wijziging op branch "dev" gaat www/ (als dev-versie) naar dev.blueberylsailing.com.
+# De echte site (blueberylsailing.com) wordt hier NOOIT aangeraakt.
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'www/**'
+      - '.github/scripts/dev-build.sh'
+      - '.github/workflows/deploy-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SFTP_HOST: ${{ secrets.SFTP_HOST }}
+      SFTP_PORT: ${{ secrets.SFTP_PORT }}
+      SFTP_USER: ${{ secrets.SFTP_USER }}
+      SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+      SFTP_KEY: ${{ secrets.SFTP_KEY }}
+      SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
+      DEV_REMOTE_DIR: ${{ secrets.DEV_REMOTE_DIR }}
+      DEV_MAIL_TO: ${{ secrets.DEV_MAIL_TO }}
+      DEV_HOST: dev.blueberylsailing.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Controleer de instellingen
+        run: |
+          missing=0
+          for v in SFTP_HOST SFTP_USER DEV_REMOTE_DIR; do
+            if [ -z "${!v}" ]; then echo "::error::GitHub-secret $v ontbreekt"; missing=1; fi
+          done
+          if [ -z "$SFTP_KEY" ] && [ -z "$SFTP_PASSWORD" ]; then
+            echo "::error::Zet SFTP_KEY (aanbevolen) of SFTP_PASSWORD als GitHub-secret"; missing=1
+          fi
+          # Veiligheid: de doelmap moet duidelijk de dev-map zijn, nooit de map van de echte site
+          case "$DEV_REMOTE_DIR" in
+            *dev*) ;;
+            *) echo "::error::DEV_REMOTE_DIR moet 'dev' in de naam hebben, zodat de echte site nooit overschreven wordt"; missing=1 ;;
+          esac
+          [ "$missing" = 0 ] || exit 1
+
+      - name: Maak de dev-versie
+        run: .github/scripts/dev-build.sh
+
+      - name: Installeer lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Zet SFTP-verbinding klaar
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          if [ -n "$SFTP_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SFTP_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            echo "::warning::SFTP_KNOWN_HOSTS niet gezet: serversleutel wordt bij deze run voor het eerst vertrouwd"
+            ssh-keyscan -p "${SFTP_PORT:-22}" "$SFTP_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          fi
+          if [ -n "$SFTP_KEY" ]; then
+            printf '%s\n' "$SFTP_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          fi
+
+      - name: Upload naar dev.blueberylsailing.com
+        run: |
+          PORT="${SFTP_PORT:-22}"
+          SSH_CMD="ssh -a -x -p $PORT -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          if [ -n "$SFTP_KEY" ]; then
+            SSH_CMD="$SSH_CMD -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PasswordAuthentication=no"
+            PASS=""
+          else
+            PASS="$SFTP_PASSWORD"
+          fi
+          # Alleen uploaden en overschrijven, nooit verwijderen op de server
+          lftp -e "
+            set cmd:fail-exit yes;
+            set net:max-retries 3;
+            set sftp:connect-program '$SSH_CMD';
+            open -u '$SFTP_USER','$PASS' sftp://$SFTP_HOST;
+            mirror --reverse --only-newer --parallel=3 --verbose build '$DEV_REMOTE_DIR';
+            bye"
+
+      - name: Controleer dat de dev-site bijgewerkt is
+        continue-on-error: true
+        run: |
+          sleep 5
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://$DEV_HOST/robots.txt")
+          echo "https://$DEV_HOST/robots.txt gaf HTTP $code"
+          curl -s "https://$DEV_HOST/robots.txt" | grep -q 'Disallow: /'

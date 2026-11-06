@@ -35,3 +35,12 @@ Deze map staat in Google Drive ("Mijn Drive > Blue Beryl website") en wordt gesy
 - Sponsors: De Vries Maritiem, Code 050, Arius, Gebo, Passage Guardian.
 - Contact: info@blueberylsailing.com, +31 6 47 95 33 49.
 Twijfel je over een feit, vraag het Sander in plaats van het te raden.
+
+## GitHub en dev-site (nieuwe werkwijze)
+Deze repo (`ajdroog/blueberylsailing-website`) bevat `www/` en dit bestand. De map `www/` in de repo is dezelfde als `www/` in Google Drive.
+- Branch `main` = wat nu op www.blueberylsailing.com (TransIP) staat. Daar wordt niet rechtstreeks op gewerkt.
+- Branch `dev` = werkversie. Elke push naar `dev` zet de site automatisch op https://dev.blueberylsailing.com (GitHub Actions: `.github/workflows/deploy-dev.yml`).
+- `.github/scripts/dev-build.sh` maakt vóór het uploaden een dev-versie: zoekmachines geblokkeerd, `.htaccess` verwijst naar dev in plaats van de echte site, en `boek.php` mailt niet naar info@. Pas `www/` aan, niet `build/`.
+- Nooit wachtwoorden, sleutels of tokens in de repo zetten (de repo is publiek). SFTP-gegevens staan alleen in GitHub Secrets.
+- Naar de echte site: pull request van `dev` naar `main`, na goedkeuring van Sander. Tot die tijd blijft de echte site ongemoeid.
+- Sander kan de bestanden ook nog steeds met `upload-naar-transip.bat` zelf online zetten.

@@ -1,7 +1,7 @@
 name: Deploy dev-site naar TransIP
 
 # Bij elke wijziging op branch "dev" gaat www/ (als dev-versie) naar dev.blueberylsailing.com.
-# De echte site (blueberylsailing.com) wordt hier NOOIT aangeraakt.
+# De echte site (blueberylsailing.com) wordt hier NOOIT aangeraakt. Formulier-mail op dev gaat naar DEV_MAIL_TO.
 on:
   push:
     branches: [dev]

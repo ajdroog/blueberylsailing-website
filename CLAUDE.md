@@ -44,3 +44,5 @@ Deze repo (`ajdroog/blueberylsailing-website`) bevat `www/` en dit bestand. De m
 - Nooit wachtwoorden, sleutels of tokens in de repo zetten (de repo is publiek). SFTP-gegevens staan alleen in GitHub Secrets.
 - Naar de echte site: pull request van `dev` naar `main`, na goedkeuring van Sander. Tot die tijd blijft de echte site ongemoeid.
 - Sander kan de bestanden ook nog steeds met `upload-naar-transip.bat` zelf online zetten.
+
+- Branch `main` zet zichzelf op de echte site via `.github/workflows/deploy-live.yml` (GitHub-omgeving `productie`, met goedkeuring van Sander). Die workflow verwijdert nooit bestanden op de server.

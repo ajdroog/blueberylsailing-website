@@ -1,0 +1,46 @@
+# Blue Beryl Sailing - nieuwe site (statische HTML, geen WordPress)
+Options -Indexes
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+
+RewriteEngine On
+
+# Altijd via https en zonder www
+RewriteCond %{HTTPS} off [OR]
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteRule ^(.*)$ https://blueberylsailing.com/$1 [R=301,L]
+
+# Oude WordPress-pagina's naar het juiste deel van de nieuwe site
+RewriteRule ^lezingen/?$            /#lezing [R=301,NE,L]
+RewriteRule ^contact/?$             /#boek   [R=301,NE,L]
+RewriteRule ^media-nieuw/?$         /logboek-pers/ [R=301,L]
+RewriteRule ^logboek/?$             /logboek-pers/ [R=301,L]
+RewriteRule ^social-media/?$        /        [R=301,L]
+RewriteRule ^het-schip(-2)?/?$      /#schip  [R=301,NE,L]
+RewriteRule ^het-schip/blue-beryl/?$ /#schip [R=301,NE,L]
+RewriteRule ^het-schip/de-crew/?$   /#over   [R=301,NE,L]
+RewriteRule ^facebook/?$  https://www.facebook.com/blueberylsailing [R=301,L]
+RewriteRule ^instagram/?$ https://www.instagram.com/blueberylsailing/ [R=301,L]
+RewriteRule ^youtube/?$   https://www.youtube.com/channel/UCUBAkzdsRzB5-rv4L6bfF-Q [R=301,L]
+RewriteRule ^blog/?$      https://www.polarsteps.com/blueberylsailing [R=301,L]
+RewriteRule ^artikel_zeilen/?$ https://www.zeilen.nl/actueel/nieuws/ontmast-op-de-grote-oceaan [R=301,L]
+RewriteRule ^ruim-drie-weken-zonder-mast-dobberden-yvette-en-sander-op-zee-traumatische-ervaring/?$ https://www.rtvdrenthe.nl/nieuws/14681654/ruim-drie-weken-zonder-mast-dobberden-yvette-en-sander-op-zee-traumatische-ervaring [R=301,L]
+RewriteRule ^(horrorscenario-op-de-grote-oceaan|leeuwarder-courant-4-mei-2022)/?$ /logboek-pers/ [R=301,L]
+RewriteRule ^(wp-admin|wp-login\.php|feed|author|category)(/.*)?$ / [R=301,L]
+
+# Oude logboekverhalen en foto's/pdf's staan voortaan op sanderenyvette.nl
+# (302 = tijdelijk; zet op 301 zodra sanderenyvette.nl goed draait)
+RewriteRule ^(blue-beryl-in-singapore|op-stap-met-een-boot-vol-vrouwen|blue-beryl-gezonken|help-mijn-man-is-klusser|zo-vader-zo-zoon|positie-op-8-mei|mast-transport-to-tahiti|nieuw-blog-op-polarsteps|nieuwe-mast-nieuwe-moed)/?$ https://sanderenyvette.nl/$1/ [R=302,L]
+RewriteRule ^wp-content/uploads/(.*)$ https://sanderenyvette.nl/wp-content/uploads/$1 [R=302,L]
+
+# Snelheid: foto's en pdf's mogen lang in de browser bewaard blijven
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType application/pdf "access plus 1 month"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml
+</IfModule>

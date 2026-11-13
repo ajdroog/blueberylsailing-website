@@ -1,18 +1,33 @@
+// Taal: onthoud de keuze (NL/EN) en stuur terugkerende bezoekers die Engels koos naar de Engelse pagina
+(function () {
+  var en = document.documentElement.lang === 'en';
+  try {
+    document.querySelectorAll('.taalkeuze a').forEach(function (a) {
+      a.addEventListener('click', function () { localStorage.setItem('taal', a.getAttribute('hreflang')); });
+    });
+    if (!en && localStorage.getItem('taal') === 'en' && !/^\/en(\/|$)/.test(location.pathname)) {
+      location.replace('/en' + location.pathname + location.search + location.hash);
+    }
+  } catch (e) {}
+})();
+
 // Menu op de telefoon
 (function () {
+  var en = document.documentElement.lang === 'en';
+  var tMenu = en ? 'Menu' : 'Menu', tSluit = en ? 'Close' : 'Sluiten';
   var knop = document.querySelector('.menu-knop');
   var kop = document.querySelector('header');
   if (knop && kop) {
     knop.addEventListener('click', function () {
       var open = kop.classList.toggle('open');
       knop.setAttribute('aria-expanded', open ? 'true' : 'false');
-      knop.textContent = open ? 'Sluiten' : 'Menu';
+      knop.textContent = open ? tSluit : tMenu;
     });
     kop.querySelectorAll('nav a').forEach(function (a) {
       a.addEventListener('click', function () {
         kop.classList.remove('open');
         knop.setAttribute('aria-expanded', 'false');
-        knop.textContent = 'Menu';
+        knop.textContent = tMenu;
       });
     });
   }

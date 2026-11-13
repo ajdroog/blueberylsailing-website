@@ -1,0 +1,76 @@
+name: Deploy live-site naar TransIP
+
+# Bij een wijziging op branch "main" gaat www/ naar de echte site (www.blueberylsailing.com).
+# "main" krijgt alleen wijzigingen via een pull request vanuit "dev", na goedkeuring van Sander.
+# Extra slot: de job gebruikt de GitHub-omgeving "productie". Zet daar Sander als verplichte
+# goedkeurder, dan wacht de upload tot hij in GitHub op "Approve" klikt.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'www/**'
+      - '.github/workflows/deploy-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-live
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: productie
+    env:
+      SFTP_HOST: ${{ secrets.SFTP_HOST }}
+      SFTP_PORT: ${{ secrets.SFTP_PORT }}
+      SFTP_USER: ${{ secrets.SFTP_USER }}
+      SFTP_KEY: ${{ secrets.SFTP_KEY }}
+      SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
+      # Webmap van de echte site op de server (dit is niet geheim)
+      LIVE_REMOTE_DIR: /site
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Controleer de instellingen
+        run: |
+          missing=0
+          for v in SFTP_HOST SFTP_USER SFTP_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::GitHub-secret $v ontbreekt"; missing=1; fi
+          done
+          # Veiligheid: de live-map mag nooit een dev- of subsites-map zijn
+          case "$LIVE_REMOTE_DIR" in
+            *dev*|*subsites*) echo "::error::LIVE_REMOTE_DIR wijst naar een dev- of subsites-map"; missing=1 ;;
+          esac
+          [ -f www/index.html ] || { echo "::error::www/index.html ontbreekt"; missing=1; }
+          [ "$missing" = 0 ] || exit 1
+
+      - name: Installeer lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Zet SFTP-verbinding klaar
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          if [ -n "$SFTP_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SFTP_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${SFTP_PORT:-22}" "$SFTP_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          fi
+          printf '%s\n' "$SFTP_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+
+      - name: Upload naar www.blueberylsailing.com
+        run: |
+          PORT="${SFTP_PORT:-22}"
+          SSH_CMD="ssh -a -x -p $PORT -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PasswordAuthentication=no -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          # Alleen uploaden en overschrijven, nooit verwijderen op de server.
+          # Niet-sitebestanden op de server (logs, subsites, wpmgmt, .webhosting) blijven staan.
+          lftp -e "
+            set cmd:fail-exit yes;
+            set net:max-retries 3;
+            set sftp:connect-program '$SSH_CMD';
+            open -u '$SFTP_USER','' sftp://$SFTP_HOST;
+            mirror --reverse --only-newer --parallel=3 --verbose --exclude-glob .git* www '$LIVE_REMOTE_DIR';
+            bye"

@@ -8,6 +8,7 @@ Deze map staat in Google Drive ("Mijn Drive > Blue Beryl website") en wordt gesy
 - `www/` is PRECIES wat online staat bij TransIP (map `www` op de server). Pas de site alleen hier aan.
 - `www/index.html` is de one-pager. Bovenaan het menu (verhaal, lezing, video, logboek & pers, over ons, contact), onderaan het boekingsformulier.
 - `www/logboek-pers/index.html` is de pagina met logboek en pers.
+- `www/en/` is de Engelse versie (`www/en/index.html` en `www/en/logboek-pers/index.html`). Zelfde opbouw als de Nederlandse pagina's, met taalkeuze NL | EN in het menu (`.taalkeuze`). Pas je een tekst of blok aan in de Nederlandse pagina, pas dan ook de Engelse aan. Het boekformulier op de Engelse pagina stuurt `taal=en` mee, zodat `boek.php` Engels antwoordt.
 - `www/fotos/` bevat de foto's, `www/fotos/partners/` de sponsorlogo's. Bestandsnamen in kleine letters met streepjes.
 - `www/pers/` bevat krantenartikelen als pdf.
 - `www/.htaccess` regelt doorverwijzingen van oude WordPress-adressen. Niet weggooien.

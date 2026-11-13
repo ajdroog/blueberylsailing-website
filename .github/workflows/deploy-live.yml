@@ -30,8 +30,9 @@ jobs:
       SFTP_USER: ${{ secrets.SFTP_USER }}
       SFTP_KEY: ${{ secrets.SFTP_KEY }}
       SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
-      # Webmap van de echte site op de server (dit is niet geheim)
-      LIVE_REMOTE_DIR: /site
+      # Webmap van de echte site op de server (dit is niet geheim). Let op: /site zelf is de hoofdmap van het account
+      # (met logs, subsites, wpmgmt); de site die online staat is de map /site/www.
+      LIVE_REMOTE_DIR: /site/www
     steps:
       - uses: actions/checkout@v4
 

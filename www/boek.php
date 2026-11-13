@@ -5,7 +5,8 @@
 
 $ONTVANGER = 'info@blueberylsailing.com';
 $AFZENDER  = 'info@blueberylsailing.com';
-$TERUG     = '/';
+$EN        = isset($_POST['taal']) && $_POST['taal'] === 'en'; // Engelse pagina
+$TERUG     = $EN ? '/en/' : '/';
 date_default_timezone_set('Europe/Amsterdam');
 
 header('X-Content-Type-Options: nosniff');
@@ -36,9 +37,9 @@ function veld($naam, $max = 200) {
 function regel($w) { return str_replace("\n", ' ', $w); }
 
 // Spamfilters: verborgen veld moet leeg blijven en het formulier moet minstens 3 seconden open staan.
-if (veld('website') !== '') antwoord(true, 'Bedankt.');
+if (veld('website') !== '') antwoord(true, $EN ? 'Thank you.' : 'Bedankt.');
 $start = (int)veld('t', 20);
-if ($start > 0 && (time() - $start) < 3) antwoord(false, 'Dat ging wel erg snel. Probeer het nog een keer.', 400);
+if ($start > 0 && (time() - $start) < 3) antwoord(false, $EN ? 'That was very quick. Please try again.' : 'Dat ging wel erg snel. Probeer het nog een keer.', 400);
 
 $naam        = regel(veld('naam', 120));
 $organisatie = regel(veld('organisatie', 160));
@@ -48,8 +49,8 @@ $soort       = regel(veld('soort', 60));
 $datum       = regel(veld('datum', 20));
 $bericht     = veld('bericht', 4000);
 
-if ($naam === '' || $email === '') antwoord(false, 'Vul je naam en e-mailadres in.', 400);
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) antwoord(false, 'Dit e-mailadres klopt niet. Kijk het even na.', 400);
+if ($naam === '' || $email === '') antwoord(false, $EN ? 'Please fill in your name and email address.' : 'Vul je naam en e-mailadres in.', 400);
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) antwoord(false, $EN ? 'This email address does not look right. Please check it.' : 'Dit e-mailadres klopt niet. Kijk het even na.', 400);
 
 $onderwerp = 'Aanvraag lezing' . ($organisatie !== '' ? ' - ' . $organisatie : ' - ' . $naam);
 $tekst = "Nieuwe aanvraag via blueberylsailing.com\n\n"
@@ -59,6 +60,7 @@ $tekst = "Nieuwe aanvraag via blueberylsailing.com\n\n"
        . "Telefoon:       $telefoon\n"
        . "Soort event:    $soort\n"
        . "Gewenste datum: $datum\n\n"
+       . "Taal van de website: " . ($EN ? 'Engels' : 'Nederlands') . "\n\n"
        . "Over het publiek en de wensen:\n$bericht\n\n"
        . "--\nVerstuurd op " . date('d-m-Y H:i') . " vanaf IP " . ($_SERVER['REMOTE_ADDR'] ?? 'onbekend') . "\n"
        . "Beantwoorden gaat rechtstreeks naar de aanvrager.\n";
@@ -71,5 +73,5 @@ $headers .= "Content-Transfer-Encoding: 8bit\r\n";
 
 $ok = mail($ONTVANGER, '=?UTF-8?B?' . base64_encode($onderwerp) . '?=', $tekst, $headers, '-f' . $AFZENDER);
 
-if ($ok) antwoord(true, 'Bedankt! Je aanvraag is binnen. We nemen zo snel mogelijk contact met je op.');
-antwoord(false, 'Versturen lukte niet. Mail ons direct op info@blueberylsailing.com.', 500);
+if ($ok) antwoord(true, $EN ? 'Thank you! Your request has been received. We will get back to you as soon as possible.' : 'Bedankt! Je aanvraag is binnen. We nemen zo snel mogelijk contact met je op.');
+antwoord(false, $EN ? 'Sending failed. Please email us directly at info@blueberylsailing.com.' : 'Versturen lukte niet. Mail ons direct op info@blueberylsailing.com.', 500);

@@ -8,6 +8,9 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="In de pers · Blue Beryl Sailing">
 <meta property="og:description" content="Wat kranten en zeilbladen schreven over de mastbreuk van de Blue Beryl op de Grote Oceaan en de 2.100 zeemijl op het noodtuig naar Hiva Oa.">
+<link rel="alternate" hreflang="nl" href="https://blueberylsailing.com/logboek-pers/">
+<link rel="alternate" hreflang="en" href="https://blueberylsailing.com/en/logboek-pers/">
+<link rel="alternate" hreflang="x-default" href="https://blueberylsailing.com/logboek-pers/">
 <meta property="og:image" content="https://blueberylsailing.com/fotos/noodtuig-marquesas.jpg">
 <meta property="og:url" content="https://blueberylsailing.com/logboek-pers/">
 <meta property="og:locale" content="nl_NL">
@@ -27,6 +30,12 @@ img{max-width:100%}
 section[id]{scroll-margin-top:84px}
 :focus-visible{outline:2px solid #F26A2E;outline-offset:3px}
 .menu-knop{display:none}
+/* Taalkeuze NL / EN */
+.taalkeuze{display:inline-flex;border:1px solid #2C4255;border-radius:2px;overflow:hidden}
+header nav .taalkeuze a{display:inline-block!important;padding:9px 12px;font:600 13px/1 Barlow,sans-serif;letter-spacing:.08em;color:#D5DEE6;text-decoration:none;background:transparent}
+header nav .taalkeuze a[aria-current="true"]{background:#F26A2E;color:#0A1620}
+header nav .taalkeuze a:hover{color:#FFFFFF}
+header nav .taalkeuze a[aria-current="true"]:hover{color:#0A1620}
 @media (max-width:900px){
  header nav a:not(.knop-boek){display:none}
  header.open nav{flex-basis:100%;flex-direction:column;align-items:flex-start;gap:16px;padding:8px 0 12px}
@@ -51,6 +60,7 @@ section[id]{scroll-margin-top:84px}
 <nav aria-label="Navigatie" style="display: flex; flex-wrap: wrap; align-items: center; gap: 22px; font-size: 15px; font-weight: 500;">
 <a href="/" style="color: #D5DEE6; text-decoration: none;">← Terug naar home</a>
 <a href="/#boek" style="background: #F26A2E; color: #0A1620; text-decoration: none; font-weight: 600; padding: 12px 20px; border-radius: 2px;">Boek een lezing</a>
+<!--taal--><span class="taalkeuze" role="group" aria-label="Taal / Language"><a href="/logboek-pers/" hreflang="nl" lang="nl" aria-current="true">NL</a><a href="/en/logboek-pers/" hreflang="en" lang="en">EN</a></span><!--/taal-->
 </nav>
 </header>
 
